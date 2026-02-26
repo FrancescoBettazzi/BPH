@@ -91,12 +91,39 @@ for K in K_VALUES:
                 ax.legend()
 
             def draw_custom_boxplot(ax, data, color, title):
-                ax.boxplot(data, medianprops=dict(color='black'))
-                mean_v = np.mean(data)
-                ax.axhline(mean_v, color=color, linestyle='--', label=f'Mean: {mean_v:.4f}')
+                mean_val, median_val, std_val = np.mean(data), np.median(data), np.std(data)
+                ax.boxplot(data, medianprops=dict(color='black', linewidth=1.5))
+                ax.axhline(mean_val, color=color, linestyle='--', linewidth=1.5, alpha=0.9)
+                ax.axhline(median_val, color=color, linestyle='--', linewidth=1.5, alpha=0.6)
+
+                top_data = (mean_val, rf"Mean: {mean_val:.4f} $\pm$ {std_val:.4f}",
+                            'bold') if mean_val >= median_val else (median_val, f"Median: {median_val:.4f}", 'normal')
+                bot_data = (median_val, f"Median: {median_val:.4f}", 'normal') if mean_val >= median_val else (mean_val,
+                                                                                                              rf"Mean: {mean_val:.4f} $\pm$ {std_val:.4f}",
+                                                                                                              'bold')
+
+                dist = abs(mean_val - median_val)
+                # Sostituito il common_box_ylim con il limite globale
+                overlap_threshold = 0.07 * (GLOBAL_Y_LIM_KL_BOXPLOT[1] - GLOBAL_Y_LIM_KL_BOXPLOT[0] or 1.0)
+                text_x_offset = 1.02
+
+                if dist < overlap_threshold:
+                    mid_point = (mean_val + median_val) / 2
+                    ax.text(text_x_offset, mid_point, top_data[1], transform=ax.get_yaxis_transform(), color=color,
+                            fontsize=8, va='bottom', fontweight=top_data[2])
+                    ax.text(text_x_offset, mid_point, bot_data[1], transform=ax.get_yaxis_transform(), color=color,
+                            fontsize=8, va='top', fontweight=bot_data[2])
+                else:
+                    ax.text(text_x_offset, top_data[0], top_data[1], transform=ax.get_yaxis_transform(), color=color,
+                            fontsize=8, va='center', fontweight=top_data[2])
+                    ax.text(text_x_offset, bot_data[0], bot_data[1], transform=ax.get_yaxis_transform(), color=color,
+                            fontsize=8, va='center', fontweight=bot_data[2])
+
                 ax.set_title(title)
+                ax.set_ylabel("KL Divergence")
                 ax.set_ylim(GLOBAL_Y_LIM_KL_BOXPLOT)
                 ax.grid(axis='y', linestyle='--', alpha=0.5)
+                ax.set_xticks([])
 
             draw_custom_boxplot(ax_box_bern, kl_bph_lists[N_pdf], 'blue', "Bernstein KL Error")
             draw_custom_boxplot(ax_box_kde, kl_kde_list_M, 'red', "KDE KL Error")

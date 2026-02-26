@@ -6,7 +6,10 @@ from scipy import stats
 from scipy.stats import entropy, gaussian_kde
 from bernstein_exp import create_ecdf, calculate_bernstein_exp_pdf
 
-# Configuration
+# =============================================================================
+# 1. CONFIGURATION
+# =============================================================================
+
 K_VALUES = [2, 4, 8, 16]
 M_N_PAIRS = [
     (27, 8), (68, 16), (163, 32),
@@ -20,7 +23,10 @@ N_PLOT_LINES = 50
 GLOBAL_Y_LIM_PDF = (0, 2.0)
 GLOBAL_Y_LIM_KL = (0, 0.6)
 
-# Comparison loop
+# =============================================================================
+# 2. COMPARISON LOOP
+# =============================================================================
+
 results_table_data = []
 today_str = datetime.now().strftime("%Y%m%d") + "_erlangKK"
 
@@ -54,7 +60,10 @@ for K in K_VALUES:
             if i < N_PLOT_LINES:
                 plot_runs.append({'x': x_eval, 'pdf_bern': pdf_bern, 'pdf_kde': pdf_kde})
 
-        # Visualization
+        # =============================================================================
+        # 3. VISUALIZATION
+        # =============================================================================
+
         fig = plt.figure(figsize=(14, 10))
         fig.suptitle(f"Comparison: {dist_name} | M={M} | N={N_pdf}", fontsize=16)
         gs = fig.add_gridspec(2, 2, height_ratios=[1.2, 1])
@@ -79,13 +88,58 @@ for K in K_VALUES:
 
 
         def draw_custom_boxplot(ax, data, color, title):
-            mean_val, median_val, std_val = np.mean(data), np.median(data), np.std(data)
-            ax.boxplot(data, medianprops=dict(color='black', linewidth=1.5))
-            ax.axhline(mean_val, color=color, linestyle='--', linewidth=1.5, alpha=0.9)
+            mean_val = np.mean(data)
+            median_val = np.median(data)
+            std_val = np.std(data)
 
-            txt = rf"Mean: {mean_val:.4f} $\pm$ {std_val:.4f}"
-            ax.text(1.02, mean_val, txt, transform=ax.get_yaxis_transform(),
-                    color=color, fontsize=9, va='center', fontweight='bold')
+            ax.boxplot(data, medianprops=dict(color='black', linewidth=1.5))
+
+            ax.axhline(mean_val, color=color, linestyle='--', linewidth=1.5, alpha=0.9)
+            ax.axhline(median_val, color=color, linestyle='--', linewidth=1.5, alpha=0.6)
+
+            mean_text = rf"Mean: {mean_val:.4f} $\pm$ {std_val:.4f}"
+            mean_style = 'bold'
+
+            median_text = f"Median: {median_val:.4f}"
+            median_style = 'normal'
+
+            if mean_val >= median_val:
+                top_data = (mean_val, mean_text, mean_style)
+                bot_data = (median_val, median_text, median_style)
+            else:
+                top_data = (median_val, median_text, median_style)
+                bot_data = (mean_val, mean_text, mean_style)
+
+            val_top, txt_top, style_top = top_data
+            val_bot, txt_bot, style_bot = bot_data
+
+            # Utilizzo del limite globale per calcolare il range e l'overlap
+            y_range = GLOBAL_Y_LIM_KL[1] - GLOBAL_Y_LIM_KL[0]
+            if y_range == 0: y_range = 1.0
+
+            dist = abs(mean_val - median_val)
+            overlap_threshold = 0.07 * y_range
+            text_x_offset = 1.02
+
+            # Logica per evitare sovrapposizioni tra i testi di Mean e Median
+            if dist < overlap_threshold:
+                mid_point = (mean_val + median_val) / 2
+
+                ax.text(text_x_offset, mid_point, txt_top,
+                        transform=ax.get_yaxis_transform(),
+                        color=color, fontsize=8, va='bottom', fontweight=style_top)
+
+                ax.text(text_x_offset, mid_point, txt_bot,
+                        transform=ax.get_yaxis_transform(),
+                        color=color, fontsize=8, va='top', fontweight=style_bot)
+            else:
+                ax.text(text_x_offset, val_top, txt_top,
+                        transform=ax.get_yaxis_transform(),
+                        color=color, fontsize=8, va='center', fontweight=style_top)
+
+                ax.text(text_x_offset, val_bot, txt_bot,
+                        transform=ax.get_yaxis_transform(),
+                        color=color, fontsize=8, va='center', fontweight=style_bot)
 
             ax.set_title(title)
             ax.set_ylabel("KL Divergence")
@@ -101,14 +155,18 @@ for K in K_VALUES:
 
         output_dir = f"img/{today_str}/{dist_string}"
         os.makedirs(output_dir, exist_ok=True)
-        fig.savefig(os.path.join(output_dir, f"kde_vs_bernstein_{dist_string}_M{M}_N{N_pdf}_runs{NUM_SIMULATIONS}.jpg"), dpi=150, bbox_inches='tight', facecolor='white')
+        fig.savefig(os.path.join(output_dir, f"kde_vs_bernstein_{dist_string}_M{M}_N{N_pdf}_runs{NUM_SIMULATIONS}.jpg"),
+                    dpi=150, bbox_inches='tight', facecolor='white')
         plt.close(fig)
 
         results_table_data.append(
             [f"Erlang({K},{K})", M, N_pdf, f"{np.mean(kl_bernstein_list):.4f}", f"{np.mean(kl_kde_list):.4f}"]
         )
 
-# Summary table
+# =============================================================================
+# 4. SUMMARY TABLE GENERATION
+# =============================================================================
+
 fig_height = 2 + 0.4 * len(results_table_data)
 fig_table, ax_table = plt.subplots(figsize=(8, fig_height))
 ax_table.axis('tight')
@@ -133,5 +191,4 @@ table_full_path = os.path.join(output_dir_table, f"summary_table_runs{NUM_SIMULA
 plt.savefig(table_full_path, dpi=200, bbox_inches='tight', facecolor='white')
 plt.close(fig_table)
 
-# print(f"Tabella riassuntiva salvata in: {table_full_path}")
 print("Analisi completata.")
