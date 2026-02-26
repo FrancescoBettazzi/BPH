@@ -67,7 +67,7 @@ for K in K_VALUES:
             kl_matrix_bph[i_m, i_n] = mean_kl_b
             results_table_data.append([f"Erlang({K},{K})", M, N_pdf, f"{mean_kl_b:.4f}", f"{mean_kl_k:.4f}"])
 
-            # 2x2 Comparison Plot
+            # Comparison Plot
             fig = plt.figure(figsize=(14, 10))
             fig.suptitle(f"Comparison: {dist_name} | M={M} | N={N_pdf}", fontsize=16)
             gs = fig.add_gridspec(2, 2, height_ratios=[1.2, 1])
@@ -155,21 +155,7 @@ for K in K_VALUES:
     fig_sens.savefig(os.path.join(sens_output_dir, f"bph_trend_K{K}.jpg"), dpi=150)
     plt.close(fig_sens)
 
-# SUMMARY TABLE GENERATION (TERMINAL & IMAGE)
-
-# Stampa nel terminale
-'''
-print("\n" + "=" * 65)
-print(f"RISULTATI FINALI SINTETICI (TUTTE LE COMBINAZIONI - {NUM_SIMULATIONS} RUNS)")
-print("=" * 65)
-print(f"{'Distribution':<15} | {'M':<6} | {'N':<6} | {'KL_bph':<10} | {'KL_KDE':<10}")
-print("-" * 65)
-for row in results_table_data:
-    print(f"{row[0]:<15} | {row[1]:<6} | {row[2]:<6} | {row[3]:<10} | {row[4]:<10}")
-print("=" * 65 + "\n")
-'''
-
-# Summary table
+# Summary Table Generation
 fig_height = 2 + 0.3 * len(results_table_data)
 fig_table, ax_table = plt.subplots(figsize=(8, fig_height))
 ax_table.axis('tight')
@@ -189,7 +175,6 @@ for (row, col), cell in table.get_celld().items():
 fig_table.suptitle(f"BPH Summary Results ({NUM_SIMULATIONS} runs)", fontweight='bold', fontsize=14, y=0.99)
 fig_table.subplots_adjust(top=0.96)
 
-# Salvataggio
 output_dir_table = f"img/{today_str}"
 os.makedirs(output_dir_table, exist_ok=True)
 table_full_path = os.path.join(output_dir_table, f"summary_table_runs{NUM_SIMULATIONS}_grid_search.jpg")

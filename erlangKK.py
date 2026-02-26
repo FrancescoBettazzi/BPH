@@ -6,10 +6,7 @@ from scipy import stats
 from scipy.stats import entropy, gaussian_kde
 from bernstein_exp import create_ecdf, calculate_bernstein_exp_pdf
 
-# =============================================================================
-# 1. CONFIGURATION
-# =============================================================================
-
+# Configuration
 K_VALUES = [2, 4, 8, 16]
 M_N_PAIRS = [
     (27, 8), (68, 16), (163, 32),
@@ -23,10 +20,7 @@ N_PLOT_LINES = 50
 GLOBAL_Y_LIM_PDF = (0, 2.0)
 GLOBAL_Y_LIM_KL = (0, 0.6)
 
-# =============================================================================
-# 2. COMPARISON LOOP
-# =============================================================================
-
+# Comparison Loop
 results_table_data = []
 today_str = datetime.now().strftime("%Y%m%d") + "_erlangKK"
 
@@ -60,10 +54,7 @@ for K in K_VALUES:
             if i < N_PLOT_LINES:
                 plot_runs.append({'x': x_eval, 'pdf_bern': pdf_bern, 'pdf_kde': pdf_kde})
 
-        # =============================================================================
-        # 3. VISUALIZATION
-        # =============================================================================
-
+        # Comparison Plot
         fig = plt.figure(figsize=(14, 10))
         fig.suptitle(f"Comparison: {dist_name} | M={M} | N={N_pdf}", fontsize=16)
         gs = fig.add_gridspec(2, 2, height_ratios=[1.2, 1])
@@ -163,10 +154,7 @@ for K in K_VALUES:
             [f"Erlang({K},{K})", M, N_pdf, f"{np.mean(kl_bernstein_list):.4f}", f"{np.mean(kl_kde_list):.4f}"]
         )
 
-# =============================================================================
-# 4. SUMMARY TABLE GENERATION
-# =============================================================================
-
+# Summary Table Generation
 fig_height = 2 + 0.4 * len(results_table_data)
 fig_table, ax_table = plt.subplots(figsize=(8, fig_height))
 ax_table.axis('tight')
@@ -185,6 +173,7 @@ for (row, col), cell in table.get_celld().items():
 
 fig_table.suptitle(f"BPH Summary Results ({NUM_SIMULATIONS} runs)", fontweight='bold', fontsize=14, y=0.99)
 fig_table.subplots_adjust(top=0.96)
+
 output_dir_table = f"img/{today_str}"
 os.makedirs(output_dir_table, exist_ok=True)
 table_full_path = os.path.join(output_dir_table, f"summary_table_runs{NUM_SIMULATIONS}_erlangKK.jpg")
