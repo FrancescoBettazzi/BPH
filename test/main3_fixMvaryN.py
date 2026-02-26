@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy import stats
 from scipy.stats import entropy, gaussian_kde
-from bernstein_exp import create_ecdf, calculate_bernstein_exp_pdf
+from test.bernstein_exp import create_ecdf, calculate_bernstein_exp_pdf
 
 # =============================================================================
 # 1. CONFIGURATION
