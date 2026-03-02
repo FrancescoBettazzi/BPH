@@ -1,4 +1,5 @@
 import os
+import json
 from datetime import datetime
 import numpy as np
 import matplotlib.pyplot as plt
@@ -6,7 +7,7 @@ from scipy import stats
 from scipy.stats import entropy, gaussian_kde
 from bernstein_exp import create_ecdf, calculate_bernstein_exp_pdf
 
-# Configuration
+'''# Configuration
 K_VALUES = [2, 4, 8, 16]
 M_VALUES = [27, 68, 163, 381, 866, 1938]
 N_VALUES = [8, 16, 32, 64, 128, 256]
@@ -17,7 +18,25 @@ N_PLOT_LINES = 50
 
 GLOBAL_Y_LIM_PDF = (0, 2.0)
 GLOBAL_Y_LIM_KL_BOXPLOT = (0, 0.6)
-GLOBAL_Y_LIM_KL_SENSITIVITY = (1e-4, 1.0)
+GLOBAL_Y_LIM_KL_SENSITIVITY = (1e-4, 1.0)'''
+
+# Caricamento configurazione da file
+with open('config.json', 'r') as f:
+    config = json.load(f)
+
+# Estrazione parametri
+K_VALUES = config['K_VALUES']
+# Convertiamo le liste interne in tuple per mantenere la compatibilità con il tuo ciclo
+M_VALUES = config['M_VALUES']
+N_VALUES = config['N_VALUES']
+NUM_SIMULATIONS = config['NUM_SIMULATIONS']
+NUM_POINTS = config['NUM_POINTS']
+N_PLOT_LINES = config['N_PLOT_LINES']
+GLOBAL_Y_LIM_PDF = tuple(config['GLOBAL_Y_LIM_PDF'])
+GLOBAL_Y_LIM_KL_BOXPLOT = tuple(config['GLOBAL_Y_LIM_KL_BOXPLOT'])
+GLOBAL_Y_LIM_KL_SENSITIVITY = tuple(config['GLOBAL_Y_LIM_KL_SENSITIVITY'])
+bw_method = config['bw_method']
+ppf_val = config['ppf_val']
 
 # Comparison loop & Grid search
 results_table_data = []
@@ -36,7 +55,7 @@ for K in K_VALUES:
         kl_bph_lists = {N: [] for N in N_VALUES}
         plot_runs_dict = {N: [] for N in N_VALUES}
 
-        upper_lim = dist_obj.ppf(0.999)
+        upper_lim = dist_obj.ppf(ppf_val)
         x_eval = np.linspace(1e-9, upper_lim, NUM_POINTS)
         pdf_true = dist_obj.pdf(x_eval)
 
@@ -44,7 +63,7 @@ for K in K_VALUES:
             campioni = dist_obj.rvs(size=M)
             ecdf = create_ecdf(campioni)
 
-            kde_func = gaussian_kde(campioni)
+            kde_func = gaussian_kde(campioni, bw_method=bw_method)
             pdf_kde = kde_func(x_eval)
             kl_k = entropy(pk=pdf_true, qk=pdf_kde + 1e-12)
             kl_kde_list_M.append(kl_k)

@@ -1,0 +1,18 @@
+{
+    "K_VALUES": [2, 4, 8, 16],
+    "M_N_PAIRS": [[27, 8], [68, 16], [163, 32], [381, 64], [866, 128], [1938, 256]],
+    "_commento_M_N_PAIRS": "Coppie M,N Ideali utilizzate da eralngKK.py",
+    "M_VALUES": [27, 68, 163, 381, 866, 1938],
+    "N_VALUES": [8, 16, 32, 64, 128, 256],
+    "_commento_M_N_VALUES": "Coppie M,N possibili per grid_search.py",
+    "NUM_SIMULATIONS": 100,
+    "NUM_POINTS": 500,
+    "N_PLOT_LINES": 50,
+    "GLOBAL_Y_LIM_PDF": [0, 2.0],
+    "GLOBAL_Y_LIM_KL_BOXPLOT": [0, 0.6],
+    "GLOBAL_Y_LIM_KL_SENSITIVITY": [1e-4, 1.0],
+    "bw_method": "scott",
+    "_commento_bw_method": "Serve per dire a KDE quale metodo usare. Valori possibili: scott, silverman, 0.2",
+    "ppf_val": 0.999,
+    "_commento_ppf_val": "Serve per la ppf function"
+}

@@ -1,4 +1,5 @@
 import os
+import json
 from datetime import datetime
 import numpy as np
 import matplotlib.pyplot as plt
@@ -6,7 +7,7 @@ from scipy import stats
 from scipy.stats import entropy, gaussian_kde
 from bernstein_exp import create_ecdf, calculate_bernstein_exp_pdf
 
-# Configuration
+'''# Configuration
 K_VALUES = [2, 4, 8, 16]
 M_N_PAIRS = [
     (27, 8), (68, 16), (163, 32),
@@ -18,7 +19,23 @@ NUM_POINTS = 500
 N_PLOT_LINES = 50
 
 GLOBAL_Y_LIM_PDF = (0, 2.0)
-GLOBAL_Y_LIM_KL = (0, 0.6)
+GLOBAL_Y_LIM_KL = (0, 0.6)'''
+
+# Caricamento configurazione da file
+with open('config.json', 'r') as f:
+    config = json.load(f)
+
+# Estrazione parametri
+K_VALUES = config['K_VALUES']
+# Convertiamo le liste interne in tuple per mantenere la compatibilità con il tuo ciclo
+M_N_PAIRS = [tuple(pair) for pair in config['M_N_PAIRS']]
+NUM_SIMULATIONS = config['NUM_SIMULATIONS']
+NUM_POINTS = config['NUM_POINTS']
+N_PLOT_LINES = config['N_PLOT_LINES']
+GLOBAL_Y_LIM_PDF = tuple(config['GLOBAL_Y_LIM_PDF'])
+GLOBAL_Y_LIM_KL_BOXPLOT = tuple(config['GLOBAL_Y_LIM_KL_BOXPLOT'])
+bw_method = config['bw_method']
+ppf_val = config['ppf_val']
 
 # Comparison Loop
 results_table_data = []
@@ -36,7 +53,7 @@ for K in K_VALUES:
         kl_kde_list = []
         plot_runs = []
 
-        upper_lim = dist_obj.ppf(0.999)
+        upper_lim = dist_obj.ppf(ppf_val)
         x_eval = np.linspace(1e-9, upper_lim, NUM_POINTS)
         pdf_true = dist_obj.pdf(x_eval)
 
@@ -45,7 +62,7 @@ for K in K_VALUES:
             ecdf = create_ecdf(campioni)
 
             pdf_bern = calculate_bernstein_exp_pdf(ecdf, N_pdf, x_eval)
-            kde_func = gaussian_kde(campioni)
+            kde_func = gaussian_kde(campioni, bw_method=bw_method)
             pdf_kde = kde_func(x_eval)
 
             kl_bernstein_list.append(entropy(pk=pdf_true, qk=pdf_bern + 1e-12))
@@ -105,7 +122,7 @@ for K in K_VALUES:
             val_bot, txt_bot, style_bot = bot_data
 
             # Utilizzo del limite globale per calcolare il range e l'overlap
-            y_range = GLOBAL_Y_LIM_KL[1] - GLOBAL_Y_LIM_KL[0]
+            y_range = GLOBAL_Y_LIM_KL_BOXPLOT[1] - GLOBAL_Y_LIM_KL_BOXPLOT[0]
             if y_range == 0: y_range = 1.0
 
             dist = abs(mean_val - median_val)
@@ -134,7 +151,7 @@ for K in K_VALUES:
 
             ax.set_title(title)
             ax.set_ylabel("KL Divergence")
-            ax.set_ylim(GLOBAL_Y_LIM_KL)
+            ax.set_ylim(GLOBAL_Y_LIM_KL_BOXPLOT)
             ax.grid(axis='y', linestyle='--', alpha=0.5)
             ax.set_xticks([])
 
